@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -182,15 +183,17 @@ func ReadSymbolValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, index
 }
 
 // Adapted from: https://github.com/jisotalo/ads-client/blob/master/src/ads-client.js
-func WriteArrayValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, indexGroup uint32, indexOffset uint32, value []any, dim uint16) (offset uint32, err error) {
+func WriteArrayValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, indexGroup uint32, indexOffset uint32, value any, dim uint16) (offset uint32, err error) {
+	if reflect.TypeOf(value).Kind() != reflect.Array && reflect.TypeOf(value).Kind() != reflect.Slice {
+		return offset, errors.New("invalid value")
+	}
+	vAry := reflect.ValueOf(value)
 	offset = indexOffset
 	for i := 0; i < int(dataType.Array_Info[dim].Size); i++ {
 		if (dim + 1) < dataType.Entry.Array_Dimension {
-			if vAry, ok := value[i].([]any); ok {
-				offset, err = WriteArrayValue(c, dataType, indexGroup, offset, vAry, dim+1)
-			}
+			offset, err = WriteArrayValue(c, dataType, indexGroup, offset, vAry.Index(i), dim+1)
 		} else {
-			err = WriteSymbolValue(c, dataType, indexGroup, offset, value[i], true)
+			err = WriteSymbolValue(c, dataType, indexGroup, offset, vAry.Index(i).Interface(), true)
 			offset += dataType.Entry.Size
 		}
 	}
@@ -200,21 +203,18 @@ func WriteArrayValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, index
 // Updates symbol/variable based on provided json value
 func WriteSymbolValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, indexGroup uint32, indexOffset uint32, value any, aryItem bool) (err error) {
 	if (len(dataType.Array_Info) == 0 || aryItem) && dataType.Entry.Sub_Items > 0 {
-		if vMap, ok := value.(map[string]any); ok {
+		if reflect.TypeOf(value).Kind() == reflect.Map {
+			vMap := reflect.ValueOf(value)
 			for k, v := range dataType.Sub_Items {
-				if vVal, ok := vMap[k]; ok {
-					err = WriteSymbolValue(c, v, indexGroup, indexOffset+v.Entry.Offset, vVal, false)
+				if vVal := vMap.MapIndex(reflect.ValueOf(k)); !vVal.IsZero() {
+					err = WriteSymbolValue(c, v, indexGroup, indexOffset+v.Entry.Offset, vVal.Interface(), false)
 				}
 			}
 		} else {
 			err = errors.New("invalid value")
 		}
 	} else if len(dataType.Array_Info) > 0 && !aryItem {
-		if vAry, ok := value.([]any); ok {
-			_, err = WriteArrayValue(c, dataType, indexGroup, indexOffset, vAry, 0)
-		} else {
-			err = errors.New("invalid value")
-		}
+		_, err = WriteArrayValue(c, dataType, indexGroup, indexOffset, value, 0)
 	} else {
 		switch dataType.Entry.Data_Type {
 		case ADST_VOID:
