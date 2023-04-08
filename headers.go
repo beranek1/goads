@@ -125,11 +125,11 @@ type ADS_Array_Info struct {
 }
 
 type ADS_Data_Type_Entry struct {
-	Entry_Length    uint32
-	Version         uint32
-	Hash_Value      uint32
-	Offset_Get      uint32
-	Type_Hash_Value uint32
+	Entry_Length uint32
+	Version      uint32
+	// Hash_Value      uint32
+	Offset_Get uint32
+	// Type_Hash_Value uint32
 	Offset_Set      uint32
 	Size            uint32
 	Offset          uint32
@@ -140,6 +140,15 @@ type ADS_Data_Type_Entry struct {
 	Comment_Length  uint16
 	Array_Dimension uint16
 	Sub_Items       uint16
+}
+
+type ADS_Data_Type_Entry_Complete struct {
+	Entry      ADS_Data_Type_Entry
+	Name       string
+	Type       string
+	Comment    string
+	Sub_Items  map[string]ADS_Data_Type_Entry_Complete
+	Array_Info []ADS_Array_Info
 }
 
 type ADS_Symbol_Upload_Info struct {

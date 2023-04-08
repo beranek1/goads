@@ -184,3 +184,23 @@ const (
 	ADSSYMBOLFLAG_READONLY      uint32 = 0x0020
 	ADSSYMBOLFLAG_CONTEXTMASK   uint32 = 0x0F00
 )
+
+const (
+	ADST_VOID     uint32 = 0
+	ADST_INT16    uint32 = 2
+	ADST_INT32    uint32 = 3
+	ADST_REAL32   uint32 = 4
+	ADST_REAL64   uint32 = 5
+	ADST_INT8     uint32 = 16
+	ADST_UINT8    uint32 = 17
+	ADST_UINT16   uint32 = 18
+	ADST_UINT32   uint32 = 19
+	ADST_INT64    uint32 = 20
+	ADST_UINT64   uint32 = 21
+	ADST_STRING   uint32 = 30
+	ADST_WSTRING  uint32 = 31
+	ADST_REAL80   uint32 = 32
+	ADST_BIT      uint32 = 33
+	ADST_MAXTYPES uint32 = 34
+	ADST_BIGTYPE  uint32 = 65
+)
