@@ -112,6 +112,13 @@ type ADS_Symbol_Entry struct {
 	Comment_Length uint16
 }
 
+type ADS_Symbol_Entry_Complete struct {
+	Entry   ADS_Symbol_Entry
+	Name    string
+	Type    string
+	Comment string
+}
+
 type ADS_Array_Info struct {
 	Bound uint32
 	Size  uint32
