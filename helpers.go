@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -175,6 +176,126 @@ func ReadSymbolValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, index
 					value = v
 				}
 			}
+		}
+	}
+	return
+}
+
+// Adapted from: https://github.com/jisotalo/ads-client/blob/master/src/ads-client.js
+func WriteArrayValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, indexGroup uint32, indexOffset uint32, value []any, dim uint16) (offset uint32, err error) {
+	offset = indexOffset
+	for i := 0; i < int(dataType.Array_Info[dim].Size); i++ {
+		if (dim + 1) < dataType.Entry.Array_Dimension {
+			if vAry, ok := value[i].([]any); ok {
+				offset, err = WriteArrayValue(c, dataType, indexGroup, offset, vAry, dim+1)
+			}
+		} else {
+			err = WriteSymbolValue(c, dataType, indexGroup, offset, value[i], true)
+			offset += dataType.Entry.Size
+		}
+	}
+	return
+}
+
+// Updates symbol/variable based on provided json value
+func WriteSymbolValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, indexGroup uint32, indexOffset uint32, value any, aryItem bool) (err error) {
+	if (len(dataType.Array_Info) == 0 || aryItem) && dataType.Entry.Sub_Items > 0 {
+		if vMap, ok := value.(map[string]any); ok {
+			for k, v := range dataType.Sub_Items {
+				if vVal, ok := vMap[k]; ok {
+					err = WriteSymbolValue(c, v, indexGroup, indexOffset+v.Entry.Offset, vVal, false)
+				}
+			}
+		} else {
+			err = errors.New("invalid value")
+		}
+	} else if len(dataType.Array_Info) > 0 && !aryItem {
+		if vAry, ok := value.([]any); ok {
+			_, err = WriteArrayValue(c, dataType, indexGroup, indexOffset, vAry, 0)
+		} else {
+			err = errors.New("invalid value")
+		}
+	} else {
+		switch dataType.Entry.Data_Type {
+		case ADST_VOID:
+		case ADST_BIT:
+			if v, ok := value.(bool); ok {
+				d := make([]byte, 1)
+				if v {
+					d[0] = 1
+				} else {
+					d[0] = 0
+				}
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_INT8:
+			if v, ok := value.(int8); ok {
+				d := make([]byte, 1)
+				d[0] = byte(v)
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_INT16:
+			if v, ok := value.(int16); ok {
+				d := make([]byte, 2)
+				binary.LittleEndian.PutUint16(d, uint16(v))
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_INT32:
+			if v, ok := value.(int32); ok {
+				d := make([]byte, 4)
+				binary.LittleEndian.PutUint32(d, uint32(v))
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_INT64:
+			if v, ok := value.(int64); ok {
+				d := make([]byte, 8)
+				binary.LittleEndian.PutUint64(d, uint64(v))
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_UINT8:
+			if v, ok := value.(uint8); ok {
+				d := make([]byte, 1)
+				d[0] = v
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_UINT16:
+			if v, ok := value.(uint16); ok {
+				d := make([]byte, 2)
+				binary.LittleEndian.PutUint16(d, v)
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_UINT32:
+			if v, ok := value.(uint32); ok {
+				d := make([]byte, 4)
+				binary.LittleEndian.PutUint32(d, v)
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_UINT64:
+			if v, ok := value.(uint64); ok {
+				d := make([]byte, 8)
+				binary.LittleEndian.PutUint64(d, v)
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_REAL32:
+			if v, ok := value.(float32); ok {
+				d := make([]byte, 4)
+				binary.LittleEndian.PutUint32(d, math.Float32bits(v))
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_REAL64:
+			if v, ok := value.(float64); ok {
+				d := make([]byte, 8)
+				binary.LittleEndian.PutUint64(d, math.Float64bits(v))
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		case ADST_STRING:
+			if v, ok := value.(string); ok {
+				d := make([]byte, dataType.Entry.Size)
+				copy(d[:], []byte(v))
+				_, err = c.Write(indexGroup, indexOffset, d)
+			}
+		default:
+			err = errors.New("invalid value")
 		}
 	}
 	return
