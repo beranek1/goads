@@ -5,7 +5,7 @@ import (
 )
 
 func TestAdsSymbolUpload(t *testing.T) {
-	c, err := CreateConnection("127.0.0.1", "192.168.178.34.1.1:851")
+	c, err := NewConnection("127.0.0.1", "192.168.178.34.1.1:851")
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -26,7 +26,7 @@ func TestAdsSymbolUpload(t *testing.T) {
 }
 
 func TestAdsSymbolDataTypeUpload(t *testing.T) {
-	c, err := CreateConnection("127.0.0.1", "192.168.178.34.1.1:851")
+	c, err := NewConnection("127.0.0.1", "192.168.178.34.1.1:851")
 	if err != nil {
 		t.Error(err.Error())
 	}

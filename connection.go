@@ -23,7 +23,7 @@ type Connection struct {
 	source     AMS_Address
 }
 
-func CreateConnection(ip string, target string) (c *Connection, err error) {
+func NewConnection(ip string, target string) (c *Connection, err error) {
 	var target_addr AMS_Address
 	target_addr, err = StringToAMSAddress(target)
 	if err != nil {
