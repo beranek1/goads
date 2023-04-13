@@ -233,54 +233,117 @@ func WriteSymbolValue(c *Connection, dataType ADS_Data_Type_Entry_Complete, inde
 				d := make([]byte, 1)
 				d[0] = byte(v)
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := int8(int(v))
+				if float64(v2) == v {
+					d := make([]byte, 1)
+					d[0] = byte(v2)
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_INT16:
 			if v, ok := value.(int16); ok {
 				d := make([]byte, 2)
 				binary.LittleEndian.PutUint16(d, uint16(v))
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := int16(int(v))
+				if float64(v2) == v {
+					d := make([]byte, 2)
+					binary.LittleEndian.PutUint16(d, uint16(v2))
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_INT32:
 			if v, ok := value.(int32); ok {
 				d := make([]byte, 4)
 				binary.LittleEndian.PutUint32(d, uint32(v))
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := int32(int(v))
+				if float64(v2) == v {
+					d := make([]byte, 4)
+					binary.LittleEndian.PutUint32(d, uint32(v2))
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_INT64:
 			if v, ok := value.(int64); ok {
 				d := make([]byte, 8)
 				binary.LittleEndian.PutUint64(d, uint64(v))
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := int64(int(v))
+				if float64(v2) == v {
+					d := make([]byte, 8)
+					binary.LittleEndian.PutUint64(d, uint64(v2))
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_UINT8:
 			if v, ok := value.(uint8); ok {
 				d := make([]byte, 1)
 				d[0] = v
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := uint8(uint(v))
+				if float64(v2) == v {
+					d := make([]byte, 1)
+					d[0] = v2
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_UINT16:
 			if v, ok := value.(uint16); ok {
 				d := make([]byte, 2)
 				binary.LittleEndian.PutUint16(d, v)
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := uint16(uint(v))
+				if float64(v2) == v {
+					d := make([]byte, 2)
+					binary.LittleEndian.PutUint16(d, v2)
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_UINT32:
 			if v, ok := value.(uint32); ok {
 				d := make([]byte, 4)
 				binary.LittleEndian.PutUint32(d, v)
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := uint32(uint(v))
+				if float64(v2) == v {
+					d := make([]byte, 4)
+					binary.LittleEndian.PutUint32(d, v2)
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_UINT64:
 			if v, ok := value.(uint64); ok {
 				d := make([]byte, 8)
 				binary.LittleEndian.PutUint64(d, v)
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := uint64(uint(v))
+				if float64(v2) == v {
+					d := make([]byte, 8)
+					binary.LittleEndian.PutUint64(d, v2)
+					_, err = c.Write(indexGroup, indexOffset, d)
+				}
 			}
 		case ADST_REAL32:
 			if v, ok := value.(float32); ok {
 				d := make([]byte, 4)
 				binary.LittleEndian.PutUint32(d, math.Float32bits(v))
 				_, err = c.Write(indexGroup, indexOffset, d)
+			} else if v, ok := value.(float64); ok {
+				v2 := float32(v)
+				// if float64(v2) == v {
+				d := make([]byte, 4)
+				binary.LittleEndian.PutUint32(d, math.Float32bits(v2))
+				_, err = c.Write(indexGroup, indexOffset, d)
+				// }
 			}
 		case ADST_REAL64:
 			if v, ok := value.(float64); ok {

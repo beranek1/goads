@@ -37,7 +37,43 @@ func TestReadSymbolValue(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "SINT"), symbols["MAIN.testint8"].Entry.Index_Group, symbols["MAIN.testint8"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
 	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "INT"), symbols["MAIN.testint"].Entry.Index_Group, symbols["MAIN.testint"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "DINT"), symbols["MAIN.testint32"].Entry.Index_Group, symbols["MAIN.testint32"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "LINT"), symbols["MAIN.testint64"].Entry.Index_Group, symbols["MAIN.testint64"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "USINT"), symbols["MAIN.testuint8"].Entry.Index_Group, symbols["MAIN.testuint8"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "UINT"), symbols["MAIN.testuint"].Entry.Index_Group, symbols["MAIN.testuint"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "UDINT"), symbols["MAIN.testuint32"].Entry.Index_Group, symbols["MAIN.testuint32"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "ULINT"), symbols["MAIN.testuint64"].Entry.Index_Group, symbols["MAIN.testuint64"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "REAL"), symbols["MAIN.testreal32"].Entry.Index_Group, symbols["MAIN.testreal32"].Entry.Index_Offset, false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	_, err = ReadSymbolValue(c, GetDataTypeRecursive(dataTypes, "LREAL"), symbols["MAIN.testreal64"].Entry.Index_Group, symbols["MAIN.testreal64"].Entry.Index_Offset, false)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -80,7 +116,79 @@ func TestWriteSymbolValue(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "SINT"), symbols["MAIN.testint8"].Entry.Index_Group, symbols["MAIN.testint8"].Entry.Index_Offset, int8(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "SINT"), symbols["MAIN.testint8"].Entry.Index_Group, symbols["MAIN.testint8"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
 	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "INT"), symbols["MAIN.testint"].Entry.Index_Group, symbols["MAIN.testint"].Entry.Index_Offset, int16(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "INT"), symbols["MAIN.testint"].Entry.Index_Group, symbols["MAIN.testint"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "DINT"), symbols["MAIN.testint32"].Entry.Index_Group, symbols["MAIN.testint32"].Entry.Index_Offset, int32(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "DINT"), symbols["MAIN.testint32"].Entry.Index_Group, symbols["MAIN.testint32"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "LINT"), symbols["MAIN.testint64"].Entry.Index_Group, symbols["MAIN.testint64"].Entry.Index_Offset, int64(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "LINT"), symbols["MAIN.testint64"].Entry.Index_Group, symbols["MAIN.testint64"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "USINT"), symbols["MAIN.testuint8"].Entry.Index_Group, symbols["MAIN.testuint8"].Entry.Index_Offset, uint8(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "USINT"), symbols["MAIN.testuint8"].Entry.Index_Group, symbols["MAIN.testuint8"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "UINT"), symbols["MAIN.testuint"].Entry.Index_Group, symbols["MAIN.testuint"].Entry.Index_Offset, uint16(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "UINT"), symbols["MAIN.testuint"].Entry.Index_Group, symbols["MAIN.testuint"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "UDINT"), symbols["MAIN.testuint32"].Entry.Index_Group, symbols["MAIN.testuint32"].Entry.Index_Offset, uint32(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "UDINT"), symbols["MAIN.testuint32"].Entry.Index_Group, symbols["MAIN.testuint32"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "ULINT"), symbols["MAIN.testuint64"].Entry.Index_Group, symbols["MAIN.testuint64"].Entry.Index_Offset, uint64(42), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "ULINT"), symbols["MAIN.testuint64"].Entry.Index_Group, symbols["MAIN.testuint64"].Entry.Index_Offset, float64(84), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "REAL"), symbols["MAIN.testreal32"].Entry.Index_Group, symbols["MAIN.testreal32"].Entry.Index_Offset, float32(42.24), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "REAL"), symbols["MAIN.testreal32"].Entry.Index_Group, symbols["MAIN.testreal32"].Entry.Index_Offset, float64(84.48), false)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = WriteSymbolValue(c, GetDataTypeRecursive(dataTypes, "LREAL"), symbols["MAIN.testreal64"].Entry.Index_Group, symbols["MAIN.testreal64"].Entry.Index_Offset, float64(42.24), false)
 	if err != nil {
 		t.Error(err.Error())
 	}
