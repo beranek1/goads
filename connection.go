@@ -19,6 +19,7 @@ type Connection struct {
 	in         map[uint32]chan []byte
 	invoke_id  uint32
 	mutex      *sync.Mutex
+	inmutex    sync.RWMutex
 	connection net.Conn
 	source     AMS_Address
 }
@@ -81,7 +82,9 @@ func (c *Connection) Request(command ADSSRVID, data []byte) (response []byte, er
 		return
 	}
 	id := c.NextInvokeID()
+	c.inmutex.Lock()
 	c.in[id] = make(chan []byte)
+	c.inmutex.Unlock()
 	var packet struct {
 		AMSTCP AMSTCP_Header
 		AMS    AMS_Header
@@ -98,12 +101,16 @@ func (c *Connection) Request(command ADSSRVID, data []byte) (response []byte, er
 	case <-c.done:
 		return response, errors.New("connection closed")
 	}
+	// c.inmutex.RLock()
 	select {
 	case response = <-c.in[id]:
+		// c.inmutex.RUnlock()
 		return
 	case <-time.After(time.Second * 5):
+		// c.inmutex.RUnlock()
 		return response, errors.New("timeout receive")
 	case <-c.done:
+		// c.inmutex.RUnlock()
 		return response, errors.New("connection closed")
 	}
 }
@@ -173,8 +180,14 @@ func (c *Connection) receive() error {
 						buffer.Write(packet[:n])
 						break
 					}
+					c.inmutex.RLock()
 					if _, test := c.in[data.AMS.Invoke_Id]; test {
+						c.inmutex.RUnlock()
+						c.inmutex.Lock()
 						c.in[data.AMS.Invoke_Id] <- packet
+						c.inmutex.Unlock()
+					} else {
+						c.inmutex.RUnlock()
 					}
 				}
 			case <-c.done:
