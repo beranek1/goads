@@ -2,6 +2,7 @@ package goads
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/beranek1/goadsinterface"
 )
@@ -11,6 +12,8 @@ type AdsLib struct {
 	c         *Connection
 	dataTypes map[string]ADS_Data_Type_Entry_Complete
 	symbols   map[string]ADS_Symbol_Entry_Complete
+	dmutex    sync.RWMutex
+	smutex    sync.RWMutex
 }
 
 func NewAdsLib(ip string, target string) (lib *AdsLib, err error) {
@@ -52,71 +55,101 @@ func (l *AdsLib) updateSymbolUploadInfo() (err error) {
 	var info ADS_Symbol_Upload_Info2
 	info, err = l.c.GetAdsSymbolUploadInfo2()
 	if err == nil {
+		l.dmutex.Lock()
 		l.dataTypes, err = l.c.GetAdsSymbolDataTypeUpload(info)
 		if err == nil {
+			l.smutex.Lock()
 			l.symbols, err = l.c.GetAdsSymbolUpload(info)
+			l.smutex.Unlock()
 		}
+		l.dmutex.Unlock()
 	}
 	return
 }
 
 func (l *AdsLib) GetSymbol(name string) (symbol goadsinterface.AdsSymbol, err error) {
+	l.smutex.RLock()
 	if l.symbols == nil || len(l.symbols) == 0 {
+		l.smutex.RUnlock()
 		err = l.updateSymbolUploadInfo()
+	} else {
+		l.smutex.RUnlock()
 	}
 	if err == nil {
+		l.smutex.RLock()
 		if s, ok := l.symbols[name]; ok {
 			symbol = goadsinterface.AdsSymbol{Name: s.Name, IndexGroup: s.Entry.Index_Group, IndexOffset: s.Entry.Index_Offset, Size: s.Entry.Size, Type: s.Type, Comment: s.Comment}
 		} else {
 			err = errors.New("symbol not found")
 		}
+		l.smutex.RUnlock()
 	}
 	return
 }
 
 func (l *AdsLib) GetSymbolInfo() (info goadsinterface.AdsSymbolInfo, err error) {
+	l.smutex.RLock()
 	if l.symbols == nil || len(l.symbols) == 0 {
+		l.smutex.RUnlock()
 		err = l.updateSymbolUploadInfo()
+	} else {
+		l.smutex.RUnlock()
 	}
 	if err == nil {
 		info = make(goadsinterface.AdsSymbolInfo)
+		l.smutex.RLock()
 		for k := range l.symbols {
 			s := l.symbols[k]
 			info[k] = goadsinterface.AdsSymbol{Name: s.Name, IndexGroup: s.Entry.Index_Group, IndexOffset: s.Entry.Index_Offset, Size: s.Entry.Size, Type: s.Type, Comment: s.Comment}
 		}
+		l.smutex.RUnlock()
 	}
 	return
 }
 
 func (l *AdsLib) GetSymbolValue(name string) (data goadsinterface.AdsData, err error) {
+	l.smutex.RLock()
 	if l.symbols == nil || len(l.symbols) == 0 {
+		l.smutex.RUnlock()
 		err = l.updateSymbolUploadInfo()
+	} else {
+		l.smutex.RUnlock()
 	}
 	if err == nil {
+		l.smutex.RLock()
 		if s, ok := l.symbols[name]; ok {
 			var value any
+			l.dmutex.RLock()
 			value, err = ReadSymbolValue(l.c, GetDataTypeRecursive(l.dataTypes, s.Type), s.Entry.Index_Group, s.Entry.Index_Offset, false)
+			l.dmutex.RUnlock()
 			if err == nil {
 				data = goadsinterface.AdsData{Data: value}
 			}
 		} else {
 			err = errors.New("symbol not found")
 		}
+		l.smutex.RUnlock()
 	}
 	return
 }
 
 func (l *AdsLib) GetSymbolList() (list goadsinterface.AdsSymbolList, err error) {
+	l.smutex.RLock()
 	if l.symbols == nil || len(l.symbols) == 0 {
+		l.smutex.RUnlock()
 		err = l.updateSymbolUploadInfo()
+	} else {
+		l.smutex.RUnlock()
 	}
 	if err == nil {
+		l.smutex.RLock()
 		list = make(goadsinterface.AdsSymbolList, len(l.symbols))
 		i := 0
 		for k := range l.symbols {
 			list[i] = k
 			i++
 		}
+		l.smutex.RUnlock()
 	}
 	return
 }
@@ -130,18 +163,26 @@ func (l *AdsLib) SetState(state_in goadsinterface.AdsState) (state_out goadsinte
 }
 
 func (l *AdsLib) SetSymbolValue(name string, value goadsinterface.AdsData) (data goadsinterface.AdsData, err error) {
+	l.smutex.RLock()
 	if l.symbols == nil || len(l.symbols) == 0 {
+		l.smutex.RUnlock()
 		err = l.updateSymbolUploadInfo()
+	} else {
+		l.smutex.RUnlock()
 	}
 	if err == nil {
+		l.smutex.RLock()
 		if s, ok := l.symbols[name]; ok {
+			l.dmutex.RLock()
 			err = WriteSymbolValue(l.c, GetDataTypeRecursive(l.dataTypes, s.Type), s.Entry.Index_Group, s.Entry.Index_Offset, value.Data, false)
+			l.dmutex.RUnlock()
 			if err == nil {
 				data = value
 			}
 		} else {
 			err = errors.New("symbol not found")
 		}
+		l.smutex.RUnlock()
 	}
 	return
 }
