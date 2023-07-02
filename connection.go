@@ -82,9 +82,20 @@ func (c *Connection) Request(command ADSSRVID, data []byte) (response []byte, er
 		return
 	}
 	id := c.NextInvokeID()
+
+	respCh := make(chan []byte)
+	defer close(respCh)
+
 	c.inmutex.Lock()
-	c.in[id] = make(chan []byte)
+	c.in[id] = respCh
 	c.inmutex.Unlock()
+
+	defer func() {
+		c.inmutex.Lock()
+		delete(c.in, id)
+		c.inmutex.Unlock()
+	}()
+
 	var packet struct {
 		AMSTCP AMSTCP_Header
 		AMS    AMS_Header
@@ -101,16 +112,12 @@ func (c *Connection) Request(command ADSSRVID, data []byte) (response []byte, er
 	case <-c.done:
 		return response, errors.New("connection closed")
 	}
-	// c.inmutex.RLock()
 	select {
-	case response = <-c.in[id]:
-		// c.inmutex.RUnlock()
+	case response = <-respCh:
 		return
 	case <-time.After(time.Second * 5):
-		// c.inmutex.RUnlock()
 		return response, errors.New("timeout receive")
 	case <-c.done:
-		// c.inmutex.RUnlock()
 		return response, errors.New("connection closed")
 	}
 }
@@ -181,11 +188,9 @@ func (c *Connection) receive() error {
 						break
 					}
 					c.inmutex.RLock()
-					if _, test := c.in[data.AMS.Invoke_Id]; test {
+					if respCh, test := c.in[data.AMS.Invoke_Id]; test {
 						c.inmutex.RUnlock()
-						c.inmutex.Lock()
-						c.in[data.AMS.Invoke_Id] <- packet
-						c.inmutex.Unlock()
+						respCh <- packet
 					} else {
 						c.inmutex.RUnlock()
 					}
